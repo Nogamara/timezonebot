@@ -9,6 +9,7 @@ extern crate time;
 use hourglass::Timezone;
 use regex::Regex;
 use std::collections::HashMap;
+use std::option::Option;
 use std::vec::Vec;
 
 fn format_output(tz: String, hours: String, minutes: String, ampm: String, lookup: HashMap<String, String>, common: Vec<String>) -> String {
@@ -33,7 +34,7 @@ fn format_output(tz: String, hours: String, minutes: String, ampm: String, looku
         let cur_val = lookup.get(&current).unwrap();
         let cur_tz = Timezone::new(&cur_val).unwrap();
         let cur_t = t_input.project(&cur_tz);
-        println!("    {}: {:?}", current, cur_t);
+        println!("DBG:  {}: {:?}", current, cur_t);
         let hm = cur_t.format("%H:%M").unwrap();
         result = format!("{}{} {} / ", result, hm, current);
 
@@ -45,8 +46,8 @@ fn format_output(tz: String, hours: String, minutes: String, ampm: String, looku
     result
 }
 
-pub fn convert(body_in: String) -> String {
-    let body = &body_in.to_uppercase();
+pub fn convert(body_in: &str) -> Option<String> {
+    let body = body_in.to_uppercase();
 
     let mut slookup = HashMap::new();
 
@@ -90,7 +91,7 @@ pub fn convert(body_in: String) -> String {
     let re_ampm = Regex::new(&re_fmt_ampm).unwrap();
     let re_ampm_4d = Regex::new(&re_fmt_ampm_4d).unwrap();
 
-    let mut result = String::new();
+    let result;
 
     let tz;
     let mut ampm = String::new();
@@ -98,14 +99,14 @@ pub fn convert(body_in: String) -> String {
     let minutes;
 
     if re_base.is_match(&body) {
-        println!("match base");
+        println!("DBG:  match:base");
         let parts = re_base.captures(&body).unwrap();
         hours = parts.get(2).unwrap().as_str();
         minutes = parts.get(3).unwrap().as_str();
         tz = parts.get(4).unwrap().as_str().to_string();
         //println!("[{}]:[{}] [{}]", hours, minutes, tz);
     } else if re_ampm.is_match(&body) {
-        println!("match ampm");
+        println!("DBG:  match:ampm");
         let parts = re_ampm.captures(&body).unwrap();
         hours = parts.get(2).unwrap().as_str();
         minutes = parts.get(3).unwrap().as_str();
@@ -113,7 +114,7 @@ pub fn convert(body_in: String) -> String {
         tz = parts.get(5).unwrap().as_str().to_string();
         //println!("[{}]:[{}] {} [{}]", hours, minutes, ampm, tz);
     } else if re_ampm_4d.is_match(&body) {
-        println!("match ampm 4d");
+        println!("DBG:  match:ampm_4d");
         let parts = re_ampm_4d.captures(&body).unwrap();
 
         let undecided = parts.get(2).unwrap().as_str().trim();
@@ -132,16 +133,15 @@ pub fn convert(body_in: String) -> String {
         tz = parts.get(4).unwrap().as_str().to_string();
         //println!("[{}]:[{}] {} [{}] {}", hours, minutes, ampm, tz, undecided.len());
     } else {
-        println!("no match: {}", body);
-        return result;
+        return None;
     }
     if lookup.contains_key(&tz) {
         result = format_output(tz, hours.to_string(), minutes.to_string(), ampm, lookup, common);
-        println!("R: {}", result);
     } else {
         println!("TODO: Timezone not implemented: {}", tz);
+        result = format!("Unknown timezone: {}", tz);
     }
 
-    result
+    Some(result)
 }
 
