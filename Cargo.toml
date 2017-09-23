@@ -1,0 +1,22 @@
+[package]
+name = "timezonebot"
+version = "0.1.0"
+authors = ["Nogamara <armagonlive@gmail.com>"]
+
+[lib]
+name = "tzbot"
+path = "src/tzbot.rs"
+
+[[bin]]
+name = "timezonebot"
+path = "src/main.rs"
+
+[dependencies]
+hourglass = "0.6.5"
+regex = "0.2"
+time = "0.1"
+
+[dependencies.serenity]
+git = "https://github.com/zeyla/serenity.git"
+#version = "0.3.0"
+default-features = true
