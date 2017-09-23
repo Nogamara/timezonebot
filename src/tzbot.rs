@@ -34,7 +34,7 @@ fn format_output(tz: String, hours: String, minutes: String, ampm: String, looku
         let cur_tz = Timezone::new(&cur_val).unwrap();
         let cur_t = t_input.project(&cur_tz);
         println!("    {}: {:?}", current, cur_t);
-        let hm = cur_t.format("%H:%m").unwrap();
+        let hm = cur_t.format("%H:%M").unwrap();
         result = format!("{}{} {} / ", result, hm, current);
 
     }
