@@ -5,27 +5,19 @@ use serenity::prelude::*;
 use serenity::model::*;
 use std::env;
 use tzbot::convert;
-//use serenity::client::{Context, EventHandler};
+use serenity::CACHE;
 
 struct Handler;
 
 impl EventHandler for Handler {
-    // Set a handler for the `on_message` event - so that whenever a new message
-    // is received - the closure (or function) passed will be called.
-    //
-    // Event handlers are dispatched through multi-threading, and so multiple
-    // of a single event can be dispatched simultaneously.
     fn on_message(&self, _: Context, msg: Message) {
-        if msg.author.id == 12 {
-            println!("talk::self");
+        // don't talk to yourself, bot
+        if msg.author.id == CACHE.read().unwrap().user.id {
+            println!("talk::self - caught [{}]", msg.content);
             return;
         }
 
         if msg.content == "!tzbot" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
             if let Err(why) = msg.channel_id.say("Pong!") {
                 println!("Error sending message: {:?}", why);
             }
@@ -39,11 +31,6 @@ impl EventHandler for Handler {
         }
     }
 
-    // Set a handler to be called on the `on_ready` event. This is called when a
-    // shard is booted, and a READY payload is sent by Discord. This payload
-    // contains data like the current user's guild Ids, current user data,
-    // private channels, and more.
-    //
     // In this case, just print what the current user's username is.
     fn on_ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);

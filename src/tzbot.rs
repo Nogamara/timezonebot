@@ -24,10 +24,7 @@ fn format_output(tz: String, hours: String, minutes: String, ampm: String, looku
 
     let now = time::now();
     let t_input = local.datetime(1900 + now.tm_year, 1 + now.tm_mon, now.tm_mday, h_i, m_i, 0, 0).unwrap();
-    //let utc = Timezone::utc();
-    //let t_utc = t_input.project(&utc);
 
-    println!("---");
     let mut result = format!("{}:{}{} {} is ", hours, minutes, ampm, tz);
     for current in common {
         if current == tz {
@@ -36,7 +33,7 @@ fn format_output(tz: String, hours: String, minutes: String, ampm: String, looku
         let cur_val = lookup.get(&current).unwrap();
         let cur_tz = Timezone::new(&cur_val).unwrap();
         let cur_t = t_input.project(&cur_tz);
-        println!("{} : {:?}", current, cur_t);
+        println!("    {}: {:?}", current, cur_t);
         let hm = cur_t.format("%H:%m").unwrap();
         result = format!("{}{} {} / ", result, hm, current);
 
@@ -44,7 +41,6 @@ fn format_output(tz: String, hours: String, minutes: String, ampm: String, looku
     result.pop();
     result.pop();
     result.pop();
-    println!("{:?}", result);
 
     result
 }
@@ -81,11 +77,8 @@ pub fn convert(body_in: String) -> String {
 
     let mut shorts = lookup.keys().fold(String::new(), |acc, k| { acc + k + "|" });
     shorts.pop();
-    //println!("{}", shorts);
     let common = vec!["PST".to_string(), "CST".to_string(), "EST".to_string(), "CET".to_string()];
-    /////////////
 
-    //let body2 = "asdf 930pm EST yxc".to_uppercase();
     // (\d+):(\d+) (EST|CET|...)
     let re_fmt_base = format!("{} ({})", r"^(.*?)(\d+):(\d+)", shorts.to_uppercase());
     // (\d+):(\d+)(AM|PM| AM| PM) (EST|CET|...)
@@ -110,7 +103,7 @@ pub fn convert(body_in: String) -> String {
         hours = parts.get(2).unwrap().as_str();
         minutes = parts.get(3).unwrap().as_str();
         tz = parts.get(4).unwrap().as_str().to_string();
-        println!("[{}]:[{}] [{}]", hours, minutes, tz);
+        //println!("[{}]:[{}] [{}]", hours, minutes, tz);
     } else if re_ampm.is_match(&body) {
         println!("match ampm");
         let parts = re_ampm.captures(&body).unwrap();
@@ -118,7 +111,7 @@ pub fn convert(body_in: String) -> String {
         minutes = parts.get(3).unwrap().as_str();
         ampm = parts.get(4).unwrap().as_str().trim().to_string();
         tz = parts.get(5).unwrap().as_str().to_string();
-        println!("[{}]:[{}] {} [{}]", hours, minutes, ampm, tz);
+        //println!("[{}]:[{}] {} [{}]", hours, minutes, ampm, tz);
     } else if re_ampm_4d.is_match(&body) {
         println!("match ampm 4d");
         let parts = re_ampm_4d.captures(&body).unwrap();
@@ -137,15 +130,16 @@ pub fn convert(body_in: String) -> String {
 
         ampm = parts.get(3).unwrap().as_str().trim().to_string();
         tz = parts.get(4).unwrap().as_str().to_string();
-        println!("[{}]:[{}] {} [{}] {}", hours, minutes, ampm, tz, undecided.len());
-
+        //println!("[{}]:[{}] {} [{}] {}", hours, minutes, ampm, tz, undecided.len());
     } else {
-        println!("E: nope");
+        println!("no match: {}", body);
         return result;
     }
     if lookup.contains_key(&tz) {
         result = format_output(tz, hours.to_string(), minutes.to_string(), ampm, lookup, common);
         println!("R: {}", result);
+    } else {
+        println!("TODO: Timezone not implemented: {}", tz);
     }
 
     result
